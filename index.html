@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,200;6..12,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="reset.css" />
+    <style>
+      /* Why are you reading the CSS? Go write some tests. */
+      html {
+        font-size: 12px;
+      }
+
+      body {
+        height: 100%;
+        min-height: 100vh;
+        background: linear-gradient(-45deg, #470c55, #122850, #232323);
+        background-size: 350% 350%;
+        animation: gradient 15s ease infinite;
+        height: 100vh;
+        color: #fff;
+        font-family: 'Nunito Sans', sans-serif;
+      }
+
+      @keyframes gradient {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      h1,
+      h2 {
+        text-shadow: 2px 2px 12px rgb(0, 0, 0, 0.15);
+      }
+
+      h1 {
+        font-size: 13rem;
+        font-weight: 200;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        font-size: 4rem;
+        font-weight: 200;
+      }
+
+      .wrapper {
+        align-items: center;
+        display: flex;
+        height: 100vh;
+        justify-content: center;
+      }
+
+      .wrapper > .container {
+        text-align: center;
+      }
+
+      footer {
+        position: absolute;
+        bottom: 25px;
+        left: calc(50% - 72px);
+        text-align: center;
+
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 4px 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      footer a {
+        text-decoration: none;
+        color: #000;
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+    </style>
+    <title>Should you write tests? Yes.</title>
+  </head>
+  <body>
+    <!-- Why are you reading the source? Go write some tests. -->
+    <div class="wrapper">
+      <div class="container">
+        <h1>Yes</h1>
+        <h2>Don't be weird</h2>
+      </div>
+    </div>
+    <footer>
+      <a rel="noopener" href="https://twitter.com/dandigangi" target="_blank"
+        >Made by @dandigangi</a
+      >
+    </footer>
+  </body>
+</html>
