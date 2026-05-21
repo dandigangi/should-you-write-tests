@@ -1,104 +1,297 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,200;6..12,600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="reset.css" />
-    <style>
-      /* Why are you reading the CSS? Go write some tests. */
-      html {
-        font-size: 12px;
-      }
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YES</title>
+  <meta name="description" content="Should you write tests? Yes. Always. No exceptions. If you ain't testing, you ain't shipping to prod." />
+  <meta name="author" content="Dan DiGangi" />
+  <link rel="canonical" href="https://shouldyouwritetests.com" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shouldyouwritetests.com" />
+  <meta property="og:title" content="Should You Write Tests? Yes." />
+  <meta property="og:description" content="Should you write tests? Yes. Always. No exceptions. If you ain't testing, you ain't shipping to prod." />
+  <meta property="og:site_name" content="shouldyouwritetests.com" />
+  <meta property="og:image" content="https://shouldyouwritetests.com/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@yeswritetests" />
+  <meta name="twitter:creator" content="@dandigangi" />
+  <meta name="twitter:title" content="Should You Write Tests? Yes." />
+  <meta name="twitter:description" content="Should you write tests? Yes. Always. No exceptions. If you ain't testing, you ain't shipping to prod." />
+  <meta name="twitter:image" content="https://shouldyouwritetests.com/og.png" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0c0c0c" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230c0c0c'/><text x='16' y='22' text-anchor='middle' font-family='monospace' font-size='29' font-weight='700' fill='%233dcc73'>_</text></svg>" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow-x: hidden; }
+    body { background: #0c0c0c; }
 
-      body {
-        height: 100%;
-        min-height: 100vh;
-        background: linear-gradient(-45deg, #470c55, #122850, #232323);
-        background-size: 350% 350%;
-        animation: gradient 15s ease infinite;
-        height: 100vh;
-        color: #fff;
-        font-family: 'Nunito Sans', sans-serif;
-      }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
 
-      @keyframes gradient {
-        0% {
-          background-position: 0% 50%;
-        }
-        50% {
-          background-position: 100% 50%;
-        }
-        100% {
-          background-position: 0% 50%;
-        }
-      }
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 70px 15px rgba(61,204,115,0.08), 0 0 0 1px #111; }
+      50%       { box-shadow: 0 0 90px 20px rgba(61,204,115,0.13), 0 0 0 1px #111; }
+    }
 
-      h1,
-      h2 {
-        text-shadow: 2px 2px 12px rgb(0, 0, 0, 0.15);
-      }
+    .terminal-window {
+      animation: glow-pulse 6s ease-in-out infinite;
+    }
 
-      h1 {
-        font-size: 13rem;
-        font-weight: 200;
-        text-transform: uppercase;
-      }
+    .terminal-line {
+      font-size: clamp(12px, 2.4vw, 15px);
+      letter-spacing: -0.2px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-all;
+      overflow-wrap: break-word;
+    }
 
-      h2 {
-        font-size: 4rem;
-        font-weight: 200;
-      }
+    .wordmark {
+      font-size: clamp(18px, 5.5vw, 41px);
+      font-weight: 500;
+      letter-spacing: -1px;
+      line-height: 1.05;
+      max-width: 100%;
+      overflow: hidden;
+    }
 
-      .wrapper {
-        align-items: center;
-        display: flex;
-        height: 100vh;
-        justify-content: center;
-      }
+    .tagline {
+      font-size: clamp(10px, 2.2vw, 13px);
+      color: #facc15;
+      letter-spacing: 0.3px;
+      margin-top: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
 
-      .wrapper > .container {
-        text-align: center;
-      }
 
-      footer {
-        position: absolute;
-        bottom: 25px;
-        left: calc(50% - 72px);
-        text-align: center;
+    * { cursor: none !important; }
 
-        background-color: #fff;
-        border-radius: 8px;
-        padding: 4px 10px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
+    #cursor {
+      position: fixed;
+      top: 0; left: 0;
+      width: 24px; height: 24px;
+      pointer-events: none;
+      z-index: 9999;
+      filter: drop-shadow(0 0 4px rgba(61,204,115,0.7)) drop-shadow(0 0 10px rgba(61,204,115,0.3));
+      transition: filter 0.15s ease;
+    }
 
-      footer a {
-        text-decoration: none;
-        color: #000;
-        font-size: 1.25rem;
-        font-weight: 600;
-      }
-    </style>
-    <title>Should you write tests? Yes.</title>
-  </head>
-  <body>
-    <!-- Why are you reading the source? Go write some tests. -->
-    <div class="wrapper">
-      <div class="container">
-        <h1>Yes</h1>
-        <h2>Don't be weird</h2>
-      </div>
-    </div>
-    <footer>
-      <a rel="noopener" href="https://twitter.com/dandigangi" target="_blank"
-        >Made by @dandigangi</a
-      >
-    </footer>
-  </body>
+    #cursor.clicking {
+      filter: drop-shadow(0 0 6px rgba(61,204,115,0.9)) drop-shadow(0 0 14px rgba(61,204,115,0.5));
+    }
+
+    a:focus-visible {
+      outline: 2px solid #3dcc73;
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <svg id="cursor" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+    <polygon points="4,2 4,20 8,16 11,22 13,21 10,15 16,15" fill="#3dcc73" stroke="#0c0c0c" stroke-width="1.5" stroke-linejoin="round" />
+  </svg>
+
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const lines = [
+      { delay: 0,    color: "#555",    text: "$ npx jest --coverage --watchAll=false" },
+      { delay: 400,  color: "#3dcc73", text: "  ✓  renders without crashing (12ms)" },
+      { delay: 650,  color: "#3dcc73", text: "  ✓  handles empty state (3ms)" },
+      { delay: 880,  color: "#3dcc73", text: "  ✓  validates input correctly (8ms)" },
+      { delay: 1100, color: "#3dcc73", text: "  ✓  submits form data (21ms)" },
+      { delay: 1320, color: "#3dcc73", text: "  ✓  displays error messages (5ms)" },
+      { delay: 1540, color: "#333",    text: "  ──────────────────────────────────" },
+      { delay: 1720, color: "#a3a3a3", text: "  Test Suites:  1 passed, 1 total" },
+      { delay: 1920, color: "#a3a3a3", text: "  Tests:        5 passed, 5 total" },
+      { delay: 2100, color: "#a3a3a3", text: "  Coverage:     94.2% statements" },
+      { delay: 2300, color: "#a3a3a3", text: "  Time:         1.284s" },
+      { delay: 2500, color: "#facc15", text: "  Verdict:  ✦ yes. write the tests." },
+    ];
+
+    function App() {
+      const [visible, setVisible] = useState([]);
+      const [done, setDone] = useState(false);
+
+      useEffect(() => {
+        lines.forEach((_, i) => {
+          setTimeout(() => {
+            setVisible(v => [...v, i]);
+            if (i === lines.length - 1) setTimeout(() => setDone(true), 400);
+          }, lines[i].delay);
+        });
+      }, []);
+
+      return (
+        <div style={{
+          minHeight: "100vh",
+          background: "#0c0c0c",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: "'DM Mono', monospace",
+          position: "relative",
+          overflowX: "hidden",
+          padding: "2rem 1.25rem 5rem",
+        }}>
+          <div aria-hidden="true" style={{
+            position: "absolute", inset: 0,
+            backgroundImage: "linear-gradient(rgba(61,204,115,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(61,204,115,0.025) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            pointerEvents: "none",
+          }} />
+
+          <div aria-hidden="true" style={{
+            position: "absolute", top: "50%", left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 600, height: 600,
+            background: "radial-gradient(ellipse, rgba(61,204,115,0.04) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }} />
+
+          <header style={{
+            position: "relative", zIndex: 1,
+            marginBottom: "2.5rem",
+            textAlign: "center",
+            width: "100%",
+            maxWidth: 667,
+          }}>
+            <p aria-hidden="true" style={{ fontSize: 11, color: "#444", letterSpacing: 3, textTransform: "uppercase", marginBottom: 12 }}>
+              $ run --should-you-write-tests
+            </p>
+            <h1 className="wordmark">
+              <span style={{ color: "#3dcc73" }}>shouldyouwrite</span>
+              <span style={{ color: "#f0f0f0" }}>tests</span>
+              <span aria-hidden="true" style={{ color: "#3dcc73", animation: "blink 1s step-end infinite" }}>_</span>
+            </h1>
+            <p className="tagline">
+              if you ain't testing, you ain't shipping to prod
+            </p>
+          </header>
+
+          <footer style={{
+            position: "fixed", bottom: 0, left: 0, right: 0,
+            padding: "28px",
+            textAlign: "center",
+            zIndex: 10,
+          }}>
+            <span style={{ fontSize: 14, color: "#333", letterSpacing: 0.5 }}>
+              made by{" "}
+              <a
+                href="https://x.com/dandigangi"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Dan DiGangi on X (opens in new tab)"
+                style={{ color: "#555", textDecoration: "none", transition: "color 0.2s" }}
+                onMouseEnter={e => e.target.style.color = "#3dcc73"}
+                onMouseLeave={e => e.target.style.color = "#555"}
+              >
+                @dandigangi
+              </a>
+            </span>
+          </footer>
+
+          <main
+            className="terminal-window"
+            aria-label="Jest test runner output"
+            aria-live="polite"
+            style={{
+              position: "relative", zIndex: 1,
+              width: "100%", maxWidth: 667,
+              marginTop: "1.5rem",
+              borderRadius: 10,
+              border: "1px solid #1a1a1a",
+            }}
+          >
+            <div aria-hidden="true" style={{
+              background: "#171717",
+              borderRadius: "10px 10px 0 0",
+              padding: "10px 14px",
+              display: "flex", gap: 6, alignItems: "center",
+              borderBottom: "1px solid #222",
+            }}>
+              <div style={{ width: 11, height: 11, borderRadius: "50%", background: "#ff5f57", flexShrink: 0 }} />
+              <div style={{ width: 11, height: 11, borderRadius: "50%", background: "#ffbd2e", flexShrink: 0 }} />
+              <div style={{ width: 11, height: 11, borderRadius: "50%", background: "#28ca42", flexShrink: 0 }} />
+              <span style={{ marginLeft: 10, fontSize: 11, color: "#444", letterSpacing: "0.03em" }}>jest — zsh</span>
+            </div>
+
+            <div style={{
+              background: "#0f0f0f",
+              borderRadius: "0 0 10px 10px",
+              padding: "20px 22px",
+              border: "1px solid #1c1c1c",
+              borderTop: "none",
+              minHeight: 322,
+              overflowX: "hidden",
+            }}>
+              {lines.map((line, i) => (
+                <div
+                  key={i}
+                  className="terminal-line"
+                  style={{
+                    color: line.color,
+                    opacity: visible.includes(i) ? 1 : 0,
+                    transform: visible.includes(i) ? "translateY(0)" : "translateY(4px)",
+                    transition: "opacity 0.2s ease, transform 0.2s ease",
+                  }}
+                >
+                  {line.text}
+                </div>
+              ))}
+
+              {!done && (
+                <div aria-hidden="true" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                  <span style={{ color: "#3dcc73", fontSize: 13 }}>❯</span>
+                  <span style={{
+                    display: "inline-block", width: 2, height: 15,
+                    background: "#3dcc73", verticalAlign: "middle",
+                    animation: "blink 1s step-end infinite",
+                  }} />
+                </div>
+              )}
+            </div>
+          </main>
+        </div>
+      );
+    }
+
+
+    const cursor = document.getElementById('cursor');
+    let mx = window.innerWidth / 2;
+    let my = window.innerHeight / 2;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX;
+      my = e.clientY;
+      cursor.style.left = mx + 'px';
+      cursor.style.top = my + 'px';
+    });
+
+    document.addEventListener('mousedown', () => cursor.classList.add('clicking'));
+    document.addEventListener('mouseup', () => cursor.classList.remove('clicking'));
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
 </html>

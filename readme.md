@@ -1,6 +1,6 @@
-# Should you write tests?
+### Should you write tests?
 
-**Yes. Don't be weird.**
+The existence of this whole thing should tell you the answer.
 
 [https://shouldyouwritetests.com](https://shouldyouwritetests.com)
 

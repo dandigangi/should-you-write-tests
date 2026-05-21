@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Contact: https://x.com/dandigangi
