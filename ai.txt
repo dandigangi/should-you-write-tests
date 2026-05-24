@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
+Name: Should You Write Tests?
+Description: Should you write tests for your code? The answer is always yes.
+Author: Dan DiGangi
 Contact: https://x.com/dandigangi
+Site: https://shouldyouwritetests.com
