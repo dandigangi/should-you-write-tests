@@ -294,70 +294,6 @@
     window.__lastClickX = innerWidth/2; window.__lastClickY = innerHeight/2;
     document.addEventListener('click', e => { window.__lastClickX = e.clientX; window.__lastClickY = e.clientY; });
 
-    let __audioCtx = null;
-    let __masterGain = null;
-    let __clickBuf = null;
-    let __lastTick = 0;
-
-    function __initAudio() {
-      try {
-        if (!__audioCtx || __audioCtx.state === 'closed') {
-          __audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          __masterGain = __audioCtx.createGain();
-          __masterGain.gain.value = 0.85;
-          __masterGain.connect(__audioCtx.destination);
-          const bufSize = Math.floor(__audioCtx.sampleRate * 0.02);
-          __clickBuf = __audioCtx.createBuffer(1, bufSize, __audioCtx.sampleRate);
-          const data = __clickBuf.getChannelData(0);
-          for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
-        }
-        if (__audioCtx.state === 'suspended') __audioCtx.resume();
-      } catch(e) {}
-    }
-
-    document.addEventListener('click', __initAudio);
-    document.addEventListener('keydown', __initAudio);
-    document.addEventListener('touchstart', __initAudio);
-
-    window.__playTick = function() {
-      if (!__audioCtx || !__clickBuf || !__masterGain) return;
-      const now = performance.now();
-      if (now - __lastTick < 100) return;
-      __lastTick = now;
-      try {
-        if (__audioCtx.state === 'suspended') { __audioCtx.resume(); return; }
-        const src = __audioCtx.createBufferSource();
-        src.buffer = __clickBuf;
-        const filter = __audioCtx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 1800 + Math.random() * 600;
-        filter.Q.value = 0.9;
-        const g = __audioCtx.createGain();
-        const t = __audioCtx.currentTime;
-        g.gain.setValueAtTime(0.035, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
-        src.connect(filter); filter.connect(g); g.connect(__masterGain);
-        src.start(t); src.stop(t + 0.02);
-      } catch(e) {}
-    };
-
-    window.__playSelect = function(correct) {
-      if (!__audioCtx || !__masterGain) return;
-      try {
-        if (__audioCtx.state === 'suspended') { __audioCtx.resume(); return; }
-        const freqs = correct ? [220,330,440,550] : [440,330,220];
-        freqs.forEach((freq, i) => {
-          const osc = __audioCtx.createOscillator();
-          const g = __audioCtx.createGain();
-          osc.connect(g); g.connect(__masterGain);
-          osc.frequency.value = freq; osc.type = 'square';
-          const t = __audioCtx.currentTime + i * 0.08;
-          g.gain.setValueAtTime(0.06, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-          osc.start(t); osc.stop(t + 0.1);
-        });
-      } catch(e) {}
-    };
 
     const confettiCanvas = document.createElement('canvas');
     confettiCanvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:100;';
@@ -455,7 +391,6 @@ const TypeLine = /*#__PURE__*/React.memo(function TypeLine({
           return;
         }
         setDisplayed(text.slice(0, ++i));
-        if (window.__playTick) window.__playTick();
         setTimeout(tick, speed + Math.random() * (speed * 0.2));
       };
       tick();
@@ -500,7 +435,6 @@ const MenuItem = /*#__PURE__*/React.memo(function MenuItem({
         return;
       }
       setDisplayed(full.slice(0, ++i));
-      if (window.__playTick) window.__playTick();
       setTimeout(tick, 6 + Math.random() * 3);
     };
     tick();
@@ -707,7 +641,6 @@ function App() {
     setTryAgain(false);
     setPhase('responded');
     if (key === '1') {
-      if (window.__playSelect) window.__playSelect(true);
       if (window.__triggerConfetti) window.__triggerConfetti(window.__lastClickX, window.__lastClickY);
       if (window.__isProd && window.posthog) window.posthog.capture('answered_yes');
       setTimeout(() => setResponse({
@@ -715,18 +648,15 @@ function App() {
         cls: 'green'
       }), 150);
     } else if (key === '2') {
-      if (window.__playSelect) window.__playSelect(false);
       if (window.__isProd && window.posthog) window.posthog.capture('answered_it_depends');
       setTimeout(() => setPhase('depends-q'), 250);
     } else if (key === '3') {
-      if (window.__playSelect) window.__playSelect(false);
       if (window.__isProd && window.posthog) window.posthog.capture('answered_no');
       setTimeout(() => setResponse({
         text: 'wrong. write the tests.',
         cls: 'red'
       }), 150);
     } else if (key === '4') {
-      if (window.__playSelect) window.__playSelect(false);
       setChosenIdx(null);
       setVisibleOpts([{
         key: '1',
@@ -759,7 +689,6 @@ function App() {
     const result = isOver ? "that's over 100% but i trust you. nice job." : isHundo ? 'you are the goat. 100% or bust.' : 'less than 100%. you need to step it up. go write some tests.';
     setCoverageResult(result);
     const isGreen = isOver || isHundo || val >= 67;
-    if (window.__playSelect) window.__playSelect(isGreen);
     setPhase('coverage-done');
   }
   function submitDepends() {
@@ -770,7 +699,6 @@ function App() {
     setEmptyTooltip(false);
     const isNo = inputVal.trim().toLowerCase() === 'no';
     setDependsNo(isNo);
-    if (window.__playSelect) window.__playSelect(isNo);
     setPhase('depends-done');
   }
   useEffect(() => {
@@ -1123,7 +1051,6 @@ function App() {
           setAskAiTooltip(true);
           return;
         }
-        if (window.__playSelect) window.__playSelect(false);
         setPhase('ask-ai-done');
       }
     },
@@ -1145,7 +1072,6 @@ function App() {
         setAskAiTooltip(true);
         return;
       }
-      if (window.__playSelect) window.__playSelect(false);
       setPhase('ask-ai-done');
     }
   }, "ask")), /*#__PURE__*/React.createElement("div", {
@@ -1286,4 +1212,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.c
 
   </script>
 </body>
-</html><!--?sv=110-->
+</html><!--?sv=113-->
