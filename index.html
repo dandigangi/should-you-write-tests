@@ -356,7 +356,7 @@
     window.__playTick = function() {
       if (!__audioCtx || !__clickBuf || !__masterGain) return;
       const now = performance.now();
-      if (now - __lastTick < 40) return;
+      if (now - __lastTick < 60) return;
       __lastTick = now;
       try {
         if (__audioCtx.state === 'suspended') { __audioCtx.resume(); return; }
@@ -669,7 +669,7 @@
 
       function onQuestionDone() { setTypeItemIdx(0); }
       function onItemTypeDone(i) {
-        if (i < visibleOpts.length - 1) setTypeItemIdx(i + 1);
+        if (i < visibleOpts.length - 1) setTimeout(() => setTypeItemIdx(i + 1), 30);
         else setPhase('menu');
       }
 
@@ -1106,4 +1106,4 @@
     ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
-</html><!--?sv=89-->
+</html><!--?sv=90-->
