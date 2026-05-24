@@ -327,45 +327,64 @@
     });
 
     let __audioCtx = null;
+    let __masterGain = null;
+    let __clickBuf = null;
     let __lastTick = 0;
-    const __unlockAudio = () => {
-      if (__audioCtx) return;
-      __audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      document.removeEventListener('click', __unlockAudio);
-      document.removeEventListener('keydown', __unlockAudio);
-    };
-    document.addEventListener('click', __unlockAudio);
-    document.addEventListener('keydown', __unlockAudio);
+
+    function __initAudio() {
+      try {
+        if (!__audioCtx || __audioCtx.state === 'closed') {
+          __audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          __masterGain = __audioCtx.createGain();
+          __masterGain.gain.value = 0.6;
+          __masterGain.connect(__audioCtx.destination);
+          const bufSize = Math.floor(__audioCtx.sampleRate * 0.02);
+          __clickBuf = __audioCtx.createBuffer(1, bufSize, __audioCtx.sampleRate);
+          const data = __clickBuf.getChannelData(0);
+          for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
+        }
+        if (__audioCtx.state === 'suspended') __audioCtx.resume();
+      } catch(e) {}
+    }
+
+    document.addEventListener('click', __initAudio);
+    document.addEventListener('keydown', __initAudio);
+    document.addEventListener('touchstart', __initAudio);
 
     window.__playTick = function() {
-      if (!__audioCtx) return;
+      if (!__audioCtx || !__clickBuf || !__masterGain) return;
       const now = performance.now();
       if (now - __lastTick < 40) return;
       __lastTick = now;
       try {
-        const osc = __audioCtx.createOscillator();
+        if (__audioCtx.state === 'suspended') { __audioCtx.resume(); return; }
+        const src = __audioCtx.createBufferSource();
+        src.buffer = __clickBuf;
+        const filter = __audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1800 + Math.random() * 600;
+        filter.Q.value = 0.9;
         const g = __audioCtx.createGain();
-        osc.connect(g); g.connect(__audioCtx.destination);
-        osc.frequency.value = 180 + Math.random() * 80;
-        osc.type = 'sawtooth';
         const t = __audioCtx.currentTime;
-        g.gain.setValueAtTime(0.08, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-        osc.start(t); osc.stop(t + 0.04);
+        g.gain.setValueAtTime(0.035, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+        src.connect(filter); filter.connect(g); g.connect(__masterGain);
+        src.start(t); src.stop(t + 0.02);
       } catch(e) {}
     };
 
     window.__playSelect = function(correct) {
-      if (!__audioCtx) return;
+      if (!__audioCtx || !__masterGain) return;
       try {
+        if (__audioCtx.state === 'suspended') { __audioCtx.resume(); return; }
         const freqs = correct ? [220,330,440,550] : [440,330,220];
         freqs.forEach((freq, i) => {
           const osc = __audioCtx.createOscillator();
           const g = __audioCtx.createGain();
-          osc.connect(g); g.connect(__audioCtx.destination);
+          osc.connect(g); g.connect(__masterGain);
           osc.frequency.value = freq; osc.type = 'square';
           const t = __audioCtx.currentTime + i * 0.08;
-          g.gain.setValueAtTime(0.1, t);
+          g.gain.setValueAtTime(0.06, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
           osc.start(t); osc.stop(t + 0.1);
         });
@@ -1074,4 +1093,4 @@
     ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
-</html><!--?sv=82-->
+</html><!--?sv=85-->
