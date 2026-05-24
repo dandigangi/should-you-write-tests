@@ -336,7 +336,7 @@
         if (!__audioCtx || __audioCtx.state === 'closed') {
           __audioCtx = new (window.AudioContext || window.webkitAudioContext)();
           __masterGain = __audioCtx.createGain();
-          __masterGain.gain.value = 0.6;
+          __masterGain.gain.value = 0.85;
           __masterGain.connect(__audioCtx.destination);
           const bufSize = Math.floor(__audioCtx.sampleRate * 0.02);
           __clickBuf = __audioCtx.createBuffer(1, bufSize, __audioCtx.sampleRate);
@@ -1093,4 +1093,4 @@
     ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
-</html><!--?sv=85-->
+</html><!--?sv=86-->
