@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        background: #0a0a0a;
+        overflow: hidden;
+      }
+
+      .scanlines {
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.09) 2px, rgba(0, 0, 0, 0.09) 4px);
+        pointer-events: none;
+        z-index: 50;
+      }
+      .grid-bg {
+        position: fixed;
+        inset: 0;
+        background-image: linear-gradient(rgba(61, 204, 115, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(61, 204, 115, 0.06) 1px, transparent 1px);
+        background-size: 48px 48px;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .vignette {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(ellipse at center, transparent 38%, rgba(0, 0, 0, 0.82) 100%);
+        pointer-events: none;
+        z-index: 2;
+      }
+      .noise {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.05;
+        mix-blend-mode: screen;
+      }
+      .bg-text {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 0;
+        padding: 2rem;
+      }
+      .bg-text span {
+        font-family: 'DM Mono', monospace;
+        font-size: clamp(60px, 12vw, 140px);
+        font-weight: 500;
+        color: rgba(61, 204, 115, 0.018);
+        text-align: center;
+        letter-spacing: -3px;
+        line-height: 1.1;
+      }
+
+      @keyframes scanline-sweep {
+        0% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        81% {
+          transform: translateY(100vh);
+          opacity: 1;
+        }
+        82% {
+          opacity: 0;
+          transform: translateY(100vh);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(100vh);
+        }
+      }
+      .scanline-sweep {
+        position: fixed;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(61, 204, 115, 0.12), transparent);
+        pointer-events: none;
+        z-index: 4;
+        will-change: transform;
+        animation: scanline-sweep 13.5s linear infinite;
+      }
+
+      #grid-symbols {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        font-family: 'DM Mono', monospace;
+        font-size: 22px;
+        font-weight: 500;
+        z-index: 0;
+      }
+
+      .terminal {
+        position: relative;
+        z-index: 3;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 6vh 8vw;
+        font-family: 'DM Mono', monospace;
+      }
+      .question {
+        font-size: clamp(32px, 5vw, 64px);
+        font-weight: 500;
+        color: #f0f0f0;
+        margin-bottom: 0.8em;
+        text-shadow:
+          0 0 40px rgba(61, 204, 115, 0.15),
+          0 0 80px rgba(61, 204, 115, 0.07);
+      }
+      .option {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        font-size: clamp(18px, 2.8vw, 36px);
+        color: #e0e0e0;
+      }
+      .bracket,
+      .key {
+        color: #3dcc73;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scanlines"></div>
+    <div class="grid-bg"></div>
+    <canvas
+      class="noise"
+      id="noise-canvas"
+    ></canvas>
+    <div class="vignette"></div>
+    <div class="scanline-sweep"></div>
+    <div class="bg-text">
+      <span>GO WRITE<br />SOME TESTS</span>
+    </div>
+    <div id="grid-symbols"></div>
+
+    <div class="terminal">
+      <div class="question">should you write tests?</div>
+      <div class="option">
+        <span class="bracket">[</span>
+        <span class="key">1</span>
+        <span class="bracket">]</span>
+        <span>yes</span>
+      </div>
+    </div>
+
+    <script>
+      ;(function () {
+        const canvas = document.getElementById('noise-canvas')
+        const ctx = canvas.getContext('2d')
+        const w = Math.ceil(innerWidth / 2),
+          h = Math.ceil(innerHeight / 2)
+        canvas.width = w
+        canvas.height = h
+        canvas.style.width = innerWidth + 'px'
+        canvas.style.height = innerHeight + 'px'
+        const img = ctx.createImageData(w, h)
+        const d = img.data
+        for (let i = 0; i < d.length; i += 4) {
+          const v = (Math.random() * 255) | 0
+          d[i] = (v * 0.55) | 0
+          d[i + 1] = v
+          d[i + 2] = (v * 0.55) | 0
+          d[i + 3] = 255
+        }
+        ctx.putImageData(img, 0, 0)
+      })()
+
+      ;(function () {
+        const wrap = document.getElementById('grid-symbols')
+        const checkSvg = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12.6111L8.92308 17.5L20 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        const errorSvg = `<svg width="18" height="18" viewBox="-3.5 0 19 19" xmlns="http://www.w3.org/2000/svg"><path d="M11.383 13.644A1.03 1.03 0 0 1 9.928 15.1L6 11.172 2.072 15.1a1.03 1.03 0 1 1-1.455-1.456l3.928-3.928L.617 5.79a1.03 1.03 0 1 1 1.455-1.456L6 8.261l3.928-3.928a1.03 1.03 0 0 1 1.455 1.456L7.455 9.716z" fill="currentColor"/></svg>`
+        const C = 48,
+          cols = Math.floor(innerWidth / C),
+          rows = Math.floor(innerHeight / C)
+        const total = cols * rows,
+          count = Math.floor(total * 0.06),
+          used = new Set()
+        for (let n = 0; n < count; n++) {
+          let idx
+          do {
+            idx = Math.floor(Math.random() * total)
+          } while (used.has(idx))
+          used.add(idx)
+          const el = document.createElement('div')
+          const isX = Math.random() < 0.25
+          const color = isX ? 'rgba(61,204,115,0.15)' : 'rgba(61,204,115,0.18)'
+          el.style.cssText = `position:absolute;width:48px;height:48px;display:flex;align-items:center;justify-content:center;left:${(idx % cols) * C}px;top:${Math.floor(idx / cols) * C}px;color:${color};`
+          el.innerHTML = isX ? errorSvg : checkSvg
+          wrap.appendChild(el)
+        }
+      })()
+    </script>
+  </body>
+</html>
