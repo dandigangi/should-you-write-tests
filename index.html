@@ -32,7 +32,7 @@
       const link = document.createElement('link');
       link.rel = 'icon'; link.type = 'image/svg+xml'; link.href = on;
       document.head.appendChild(link);
-      setInterval(() => { state = !state; link.href = state ? on : off; }, 800);
+      setInterval(() => { state = !state; link.href = state ? on : off; }, 500);
     })();
   </script>
   <style>
@@ -139,8 +139,18 @@
     .menu-wrap:not(.locked) .menu-item:hover .label { color: #e0e0e0; }
     .menu-item.no-item.active .key, .menu-item.no-item.active .bracket,
     .menu-item.no-item.active .label { color: #ff5f57; }
+    .menu-wrap:not(.locked) .menu-item.no-item:hover .key,
+    .menu-wrap:not(.locked) .menu-item.no-item:hover .bracket,
+    .menu-wrap:not(.locked) .menu-item.no-item:hover .label { color: #ff5f57; }
     .menu-item.chosen .key, .menu-item.chosen .bracket, .menu-item.chosen .label { color: #facc15; }
+    .menu-item.no-item.chosen .key, .menu-item.no-item.chosen .bracket, .menu-item.no-item.chosen .label { color: #ff5f57; }
     .menu-wrap.locked .menu-item:not(.chosen) { opacity: 0.25; }
+    /* .menu-wrap.no-chosen .menu-item .key,
+    .menu-wrap.no-chosen .menu-item .bracket,
+    .menu-wrap.no-chosen .menu-item .label { color: #ff5f57; }
+    .menu-wrap.no-chosen .menu-item.chosen .key,
+    .menu-wrap.no-chosen .menu-item.chosen .bracket,
+    .menu-wrap.no-chosen .menu-item.chosen .label { color: #ff5f57; } */
     .key { color: #666; min-width: 14px; }
     .bracket { color: #555; }
     .label { color: #777; }
@@ -187,6 +197,7 @@
       font-family: 'DM Mono', monospace; font-size: 16px; color: #444; z-index: 10;
     }
     .hint-link { cursor: pointer; }
+    .new-tag { display: inline-block; background: #facc15; color: #0a0a0a; font-size: 12px; font-weight: 900; letter-spacing: 1px; padding: 0 4px; border-radius: 3px; margin-left: 11px; vertical-align: middle; font-family: 'DM Mono', monospace; line-height: 1.4; position: relative; }
     .hint-link {
       color: rgba(61,204,115,0.7); text-decoration: underline; text-underline-offset: 3px;
     }
@@ -206,13 +217,13 @@
 
     .restart-tooltip {
       position: fixed; bottom: 66px; right: 8vw;
-      background: #facc15; color: #0a0a0a;
+      background: #1a1a1a; color: #666; border: 1px solid #2a2a2a;
       font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500;
       white-space: nowrap; padding: 5px 10px; border-radius: 4px; z-index: 10;
     }
     .restart-tooltip::after {
       content: ''; position: absolute; top: 100%; right: 16px;
-      border: 5px solid transparent; border-top-color: #facc15;
+      border: 5px solid transparent; border-top-color: #1a1a1a;
     }
   </style>
   <script>
@@ -322,6 +333,50 @@
           gravity: 0.35,
           life: 1,
           decay: 0.012 + Math.random() * 0.008,
+          shape: Math.random() > 0.5 ? 'rect' : 'circle',
+        });
+      }
+      if (!confettiAnim) {
+        (function animate() {
+          confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+          window.__confettiParticles = window.__confettiParticles.filter(p => p.life > 0);
+          window.__confettiParticles.forEach(p => {
+            p.x += p.vx; p.y += p.vy; p.vy += p.gravity;
+            p.rotation += p.rotSpeed; p.life -= p.decay;
+            confCtx.save();
+            confCtx.globalAlpha = Math.max(0, p.life);
+            confCtx.translate(p.x, p.y);
+            confCtx.rotate(p.rotation * Math.PI / 180);
+            confCtx.fillStyle = p.color;
+            if (p.shape === 'rect') confCtx.fillRect(-p.size/2, -p.size/4, p.size, p.size/2);
+            else { confCtx.beginPath(); confCtx.arc(0, 0, p.size/2, 0, Math.PI*2); confCtx.fill(); }
+            confCtx.restore();
+          });
+          if (window.__confettiParticles.length > 0) confettiAnim = requestAnimationFrame(animate);
+          else { confettiAnim = null; confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); }
+        })();
+      }
+    };
+
+    window.__triggerSadConfetti = function(originX, originY) {
+      const ox = originX || innerWidth / 2;
+      const oy = originY || innerHeight / 2;
+      const colors = ['#ff5f57','#c93b34','#e8534b','#8b2520','#a83631'];
+      for (let i = 0; i < 50; i++) {
+        const angle = (Math.random() - 0.5) * Math.PI * 0.9;
+        const speed = Math.random() * 6 + 2;
+        window.__confettiParticles.push({
+          x: ox + (Math.random() - 0.5) * 120,
+          y: oy,
+          vx: Math.sin(angle) * speed,
+          vy: Math.cos(angle) * speed * 0.4 - Math.random() * 2,
+          size: Math.random() * 6 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 5,
+          gravity: 0.32,
+          life: 1,
+          decay: 0.008 + Math.random() * 0.005,
           shape: Math.random() > 0.5 ? 'rect' : 'circle',
         });
       }
@@ -474,12 +529,15 @@ const ALL_OPTIONS = [{
   label: 'it depends'
 }, {
   key: '3',
-  label: 'no'
+  label: 'ask ai'
 }, {
   key: '4',
-  label: 'show me the answer'
+  label: 'no'
 }, {
   key: '5',
+  label: 'show me the answer'
+}, {
+  key: '6',
   label: 'do something else'
 }];
 const BEST_TESTS = ["expect(true).toBe(true);", "expect(1 + 1).toBe(2);", "expect('tests').not.toBe('optional');", "expect(prod).not.toThrow();", "expect(shipit).toBe(tested);", "expect(yourManager).not.toKnow(youBrokeIt);", "expect(coffee).toBeDefined();", "expect(deadline).toBeGreaterThan(testTime);", "expect(friday).not.toBe(deployDay);", "expect(coverage).toBeGreaterThanOrEqual(80);", "expect(productOwner.featureRequest).toBe(tested);", "expect(hotfix).not.toBe(untested);", "expect(noToProductOwner).toBe(yes);", "expect(legacy.code).not.toMakeYouCry();", "expect(ci).toPass();"];
@@ -578,12 +636,17 @@ function App() {
   const [testIdx, setTestIdx] = useState(() => Math.floor(Math.random() * BEST_TESTS.length));
   const [askAiVal, setAskAiVal] = useState('');
   const [askAiTooltip, setAskAiTooltip] = useState(false);
+  const [askAiNevermind, setAskAiNevermind] = useState(false);
+  const [askAiDone, setAskAiDone] = useState(false);
+  const [evadePos, setEvadePos] = useState(null);
+  const [noChosen, setNoChosen] = useState(false);
   const [coverageKey, setCoverageKey] = useState(0);
   const menuActive = phase === 'menu';
   const showDepends = ['depends-q', 'depends-input', 'depends-done'].includes(phase);
-  const showElse = ['else-q', 'else-q2', 'else-menu', 'coverage-input', 'coverage-done', 'about-typing', 'about-p2', 'about-p3', 'about-p4', 'about-done', 'ask-ai', 'ask-ai-done', 'best-test', 'best-test-done', 'broke-prod'].includes(phase);
+  const showAskAi = ['ask-ai', 'ask-ai-done'].includes(phase);
+  const showElse = ['else-q', 'else-q2', 'else-menu', 'coverage-input', 'coverage-done', 'about-typing', 'about-p2', 'about-p3', 'about-p4', 'about-done', 'best-test', 'best-test-done', 'broke-prod'].includes(phase);
   const showInput = ['depends-input', 'depends-done'].includes(phase);
-  const showAnyAlt = showDepends || showElse;
+  const showAnyAlt = showDepends || showElse || showAskAi;
   const restart = useCallback(() => {
     setRunKey(k => k + 1);
     setPhase('pre');
@@ -606,6 +669,10 @@ function App() {
     setCoverageKey(k => k + 1);
     setAskAiVal('');
     setAskAiTooltip(false);
+    setAskAiNevermind(false);
+    setAskAiDone(false);
+    setEvadePos(null);
+    setNoChosen(false);
     window.__hasInteracted = false;
     window.__confettiParticles = [];
     document.getElementById('restart-btn').disabled = true;
@@ -622,10 +689,10 @@ function App() {
     setTimeout(() => setPhase('typing'), 30);
   }, []);
   function onQuestionDone() {
-    setTypeItemIdx(0);
+    setTypeItemIdx(visibleOpts.length - 1);
   }
   function onItemTypeDone(i) {
-    if (i < visibleOpts.length - 1) setTypeItemIdx(i + 1); else setPhase('menu');
+    if (i === visibleOpts.length - 1) setPhase('menu');
   }
   function selectOption(key) {
     if (!menuActive) return;
@@ -651,16 +718,25 @@ function App() {
       if (window.__isProd && window.posthog) window.posthog.capture('answered_it_depends');
       setTimeout(() => setPhase('depends-q'), 250);
     } else if (key === '3') {
+      setChosenIdx(null);
+      setPhase('ask-ai');
+    } else if (key === '4') {
+      if (window.__triggerSadConfetti) window.__triggerSadConfetti(window.__lastClickX, window.__lastClickY);
       if (window.__isProd && window.posthog) window.posthog.capture('answered_no');
+      setNoChosen(true);
       setTimeout(() => setResponse({
-        text: 'wrong. write the tests.',
+        text: 'wrong. write the tests. why do you think this site exists??',
         cls: 'red'
       }), 150);
-    } else if (key === '4') {
+    } else if (key === '5') {
       setChosenIdx(null);
       setVisibleOpts([{
         key: '1',
         label: 'yes'
+      }, {
+        key: '2',
+        label: 'no',
+        evade: true
       }]);
       setActiveIdx(0);
       setPhase('menu');
@@ -668,8 +744,9 @@ function App() {
         text: "this isn't hard but i made it easier for you. you're welcome.",
         cls: 'muted'
       }), 150);
-    } else if (key === '5') {
+    } else if (key === '6') {
       if (window.__isProd && window.posthog) window.posthog.capture('opened_something_else');
+      setChosenIdx(null);
       setTryAgain(false);
       setResponse(null);
       setElseMenuIdx(0);
@@ -697,7 +774,8 @@ function App() {
       return;
     }
     setEmptyTooltip(false);
-    const isNo = inputVal.trim().toLowerCase() === 'no';
+    const normalized = inputVal.trim().toLowerCase();
+    const isNo = ['no', 'nope', 'nevermind', "it doesn't", 'it does not'].includes(normalized);
     setDependsNo(isNo);
     setPhase('depends-done');
   }
@@ -709,23 +787,34 @@ function App() {
       }
       if (!menuActive) return;
       if (phase === 'else-menu') {
-        const len = 6;
+        const len = 5;
         if (e.key === 'ArrowUp' || e.key === 'k') setElseMenuIdx(i => (i - 1 + len) % len);else if (e.key === 'ArrowDown' || e.key === 'j') setElseMenuIdx(i => (i + 1) % len);else if (e.key === 'Enter' || e.key === ' ') {
-          const phases = ['coverage-input', 'ask-ai', 'best-test', 'about-typing', 'follow'];
+          const phases = ['coverage-input', 'best-test', 'broke-prod', 'about-typing', 'follow'];
           const p = phases[elseMenuIdx];
           if (p === 'follow') window.open('https://x.com/dandigangi', '_blank');else setPhase(p);
         }
         return;
       }
-      if (e.key === 'ArrowUp' || e.key === 'k') setActiveIdx(i => (i - 1 + visibleOpts.length) % visibleOpts.length);else if (e.key === 'ArrowDown' || e.key === 'j') setActiveIdx(i => (i + 1) % visibleOpts.length);else if (e.key === 'Enter' || e.key === ' ') selectOption(visibleOpts[activeIdx].key);else if (['1', '2', '3', '4'].includes(e.key)) {
+      if (e.key === 'ArrowUp' || e.key === 'k') setActiveIdx(i => {
+        let n = i;
+        do { n = (n - 1 + visibleOpts.length) % visibleOpts.length; } while (visibleOpts[n].evade && n !== i);
+        return n;
+      });else if (e.key === 'ArrowDown' || e.key === 'j') setActiveIdx(i => {
+        let n = i;
+        do { n = (n + 1) % visibleOpts.length; } while (visibleOpts[n].evade && n !== i);
+        return n;
+      });else if (e.key === 'Enter' || e.key === ' ') {
+        const o = visibleOpts[activeIdx];
+        if (o && !o.evade) selectOption(o.key);
+      }else if (['1', '2', '3', '4', '5', '6'].includes(e.key)) {
         const o = visibleOpts.find(o => o.key === e.key);
-        if (o) selectOption(o.key);
+        if (o && !o.evade) selectOption(o.key);
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [menuActive, activeIdx, visibleOpts, interacted, restart, elseMenuIdx, phase]);
-  const showMenu = !['pre', 'typing'].includes(phase) && !showDepends && !showElse;
+  const showMenu = !['pre', 'typing'].includes(phase) && !showDepends && !showElse && !showAskAi;
   return /*#__PURE__*/React.createElement("div", {
     className: "terminal"
   }, /*#__PURE__*/React.createElement("div", {
@@ -734,7 +823,7 @@ function App() {
     className: "line question glitch-q"
   }, /*#__PURE__*/React.createElement("span", {
     className: "cursor-blink"
-  })), phase !== 'pre' && !showDepends && !showElse && /*#__PURE__*/React.createElement(TypeLine, {
+  })), phase !== 'pre' && !showDepends && !showElse && !showAskAi && /*#__PURE__*/React.createElement(TypeLine, {
     key: `q-${runKey}`,
     text: "should you write tests?",
     cls: "question glitch-q",
@@ -744,29 +833,51 @@ function App() {
   }), !showAnyAlt && /*#__PURE__*/React.createElement("div", {
     className: "spacer"
   }), /*#__PURE__*/React.createElement("div", {
-    className: `menu-wrap${chosenIdx !== null ? ' locked' : ''}`,
+    className: `menu-wrap${chosenIdx !== null ? ' locked' : ''}${noChosen ? ' no-chosen' : ''}`,
     style: {
       visibility: showMenu ? 'visible' : 'hidden',
-      height: showDepends || showElse ? 0 : 'auto',
+      height: showDepends || showElse || showAskAi ? 0 : 'auto',
       overflow: 'hidden'
     }
-  }, visibleOpts.map((opt, i) => /*#__PURE__*/React.createElement(MenuItem, {
-    key: `${opt.key}-${runKey}`,
-    opt: opt,
-    active: menuActive && activeIdx === i,
-    chosen: chosenIdx === i,
-    isNo: opt.key === '3',
-    onHover: () => {
-      if (menuActive) setActiveIdx(i);
-    },
-    onClick: e => {
-      window.__lastClickX = e.clientX;
-      window.__lastClickY = e.clientY;
-      selectOption(opt.key);
-    },
-    startSignal: typeItemIdx >= i,
-    onTypeDone: () => onItemTypeDone(i)
-  }))), !showAnyAlt && /*#__PURE__*/React.createElement("div", {
+  }, visibleOpts.map((opt, i) => {
+    const isEvade = opt.evade;
+    const wrapperStyle = isEvade && evadePos
+      ? {position: 'fixed', left: evadePos.x + 'px', top: evadePos.y + 'px', display: 'flex', alignItems: 'center', zIndex: 5, transition: 'left 0.18s ease-out, top 0.18s ease-out'}
+      : {display: 'flex', alignItems: 'center'};
+    return /*#__PURE__*/React.createElement("div", {
+      key: `${opt.key}-${opt.label}-${runKey}`,
+      style: wrapperStyle,
+      onMouseEnter: isEvade ? (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const margin = 80;
+        const newX = margin + Math.random() * (innerWidth - margin * 2 - rect.width);
+        const newY = margin + Math.random() * (innerHeight - margin * 2 - rect.height);
+        if (!evadePos) {
+          setEvadePos({x: rect.left, y: rect.top});
+          requestAnimationFrame(() => requestAnimationFrame(() => setEvadePos({x: newX, y: newY})));
+        } else {
+          setEvadePos({x: newX, y: newY});
+        }
+      } : undefined
+    }, /*#__PURE__*/React.createElement(MenuItem, {
+      opt: opt,
+      active: menuActive && activeIdx === i && !isEvade,
+      chosen: chosenIdx === i,
+      isNo: opt.label === 'no',
+      onHover: () => {
+        if (isEvade) return;
+        if (menuActive) setActiveIdx(i);
+      },
+      onClick: e => {
+        if (isEvade) return;
+        window.__lastClickX = e.clientX;
+        window.__lastClickY = e.clientY;
+        selectOption(opt.key);
+      },
+      startSignal: typeItemIdx >= i,
+      onTypeDone: () => onItemTypeDone(i)
+    }), opt.key === '3' && /*#__PURE__*/React.createElement("span", {className: "new-tag"}, "NEW"));
+  })), !showAnyAlt && /*#__PURE__*/React.createElement("div", {
     className: "spacer",
     style: {
       visibility: response ? 'visible' : 'hidden'
@@ -825,7 +936,9 @@ function App() {
     disabled: phase === 'depends-done',
     style: {
       width: '100%',
-      maxWidth: '100%'
+      maxWidth: '100%',
+      borderBottomColor: phase === 'depends-done' && !dependsNo ? '#ff5f57' : '#3dcc73',
+      transition: 'border-color 0.3s'
     }
   })), phase === 'depends-input' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("button", {
     className: `submit-btn${inputVal.trim() ? ' valid' : ''}`,
@@ -870,9 +983,6 @@ function App() {
     const items = [{
       label: 'test coverage checker',
       action: () => setPhase('coverage-input')
-    }, {
-      label: 'ask ai',
-      action: () => setPhase('ask-ai')
     }, {
       label: 'the best test(s) ever',
       action: () => setPhase('best-test')
@@ -1051,12 +1161,15 @@ function App() {
           setAskAiTooltip(true);
           return;
         }
+        setAskAiNevermind(askAiVal.trim().toLowerCase() === 'nevermind');
         setPhase('ask-ai-done');
       }
     },
     style: {
       width: '100%',
-      maxWidth: '100%'
+      maxWidth: '100%',
+      borderBottomColor: phase === 'ask-ai-done' && !askAiNevermind ? '#ff5f57' : '#3dcc73',
+      transition: 'border-color 0.3s'
     }
   }), phase === 'ask-ai' && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1072,6 +1185,7 @@ function App() {
         setAskAiTooltip(true);
         return;
       }
+      setAskAiNevermind(askAiVal.trim().toLowerCase() === 'nevermind');
       setPhase('ask-ai-done');
     }
   }, "ask")), /*#__PURE__*/React.createElement("div", {
@@ -1079,27 +1193,39 @@ function App() {
   }), /*#__PURE__*/React.createElement("div", {
     className: "try-again-item",
     onClick: () => {
-      setPhase('else-menu');
+      setPhase('menu');
       setAskAiVal('');
+      setAskAiNevermind(false);
+      setAskAiDone(false);
     }
   }, /*#__PURE__*/React.createElement("span", null, "["), /*#__PURE__*/React.createElement("span", null, "b"), /*#__PURE__*/React.createElement("span", null, "]"), /*#__PURE__*/React.createElement("span", null, " go back"))), phase === 'ask-ai-done' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "spacer"
   }), /*#__PURE__*/React.createElement(TypeLine, {
-    key: `ai-${runKey}`,
-    text: "why would i let you spend my tokens just to hear another yes? go write some tests.",
-    cls: "red",
+    key: `ai-${runKey}-${askAiNevermind ? 'nv' : 'std'}`,
+    text: askAiNevermind ? "good point. you don't need to ask ai. the answer is yes, write the tests." : "why would i let you spend my tokens just to hear another yes? go write some tests.",
+    cls: askAiNevermind ? "green" : "red",
     speed: 28,
     preDelay: 0,
-    onDone: () => {}
-  }), /*#__PURE__*/React.createElement("div", {
+    onDone: () => setAskAiDone(true)
+  }), askAiDone && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "spacer"
   }), /*#__PURE__*/React.createElement("div", {
     className: "try-again-item",
     onClick: () => {
-      setPhase('else-menu');
       setAskAiVal('');
+      setAskAiNevermind(false);
+      setAskAiDone(false);
+      setPhase('ask-ai');
     }
-  }, /*#__PURE__*/React.createElement("span", null, "["), /*#__PURE__*/React.createElement("span", null, "b"), /*#__PURE__*/React.createElement("span", null, "]"), /*#__PURE__*/React.createElement("span", null, " go back")))), ['best-test', 'best-test-done'].includes(phase) && /*#__PURE__*/React.createElement(BestTest, {
+  }, /*#__PURE__*/React.createElement("span", null, "["), /*#__PURE__*/React.createElement("span", null, "r"), /*#__PURE__*/React.createElement("span", null, "]"), /*#__PURE__*/React.createElement("span", null, " try again")), /*#__PURE__*/React.createElement("div", {
+    className: "try-again-item",
+    onClick: () => {
+      setPhase('menu');
+      setAskAiVal('');
+      setAskAiNevermind(false);
+      setAskAiDone(false);
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "["), /*#__PURE__*/React.createElement("span", null, "b"), /*#__PURE__*/React.createElement("span", null, "]"), /*#__PURE__*/React.createElement("span", null, " go back"))))), ['best-test', 'best-test-done'].includes(phase) && /*#__PURE__*/React.createElement(BestTest, {
     testIdx: testIdx,
     onNext: () => {
       setTestIdx(i => (i + 1) % BEST_TESTS.length);
@@ -1212,4 +1338,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.c
 
   </script>
 </body>
-</html><!--?sv=113-->
+</html><!--?sv=122-->
